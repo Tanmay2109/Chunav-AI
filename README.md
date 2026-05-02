@@ -64,7 +64,7 @@ Voting/
 ```
 
 ## 📄 License
-MIT
+# MIT
 
 ---
-Built by Tanmay Patil for BHARAT &#x1f1ee;&#x1f1f3;
+Built by Tanmay Patil for BHARAT
