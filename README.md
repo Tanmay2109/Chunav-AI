@@ -2,7 +2,7 @@
 
 > A non-partisan AI-powered civic assistant that helps every Indian 
 > citizen understand the election process, political history, and 
-> democratic rights — in simple, clear language.
+> democratic rights - in simple, clear language.
 
 ## 🚀 Live Demo
 https://chunavai.vercel.app/
@@ -59,9 +59,6 @@ Voting/
 │   ├── server.js     # API + Groq integration
 │   └── .env          # Never commit this!
 └── README.md
-
-## 🤝 Contributing
-Pull requests welcome! Built for the hackathon with ❤️ for Bharat.
 
 ## 📄 License
 MIT
