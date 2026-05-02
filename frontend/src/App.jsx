@@ -196,7 +196,8 @@ function App() {
         parts: msg.parts
       }));
 
-      const response = await fetch('https://chunav-ai-backend.onrender.com', {
+      // Notice the /api/chat added to the end of the URL!
+      const response = await fetch('https://chunav-ai-backend.onrender.com/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: historyForApi, language: currentLang }),
