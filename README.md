@@ -61,6 +61,7 @@ Voting/
 │   ├── server.js            # API + Groq integration
 │   └── .env                 # Never commit this!
 └── README.md
+```
 
 ## 📄 License
 MIT
