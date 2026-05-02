@@ -48,16 +48,18 @@ Create backend/.env:
 GROQ_API_KEY=your_groq_api_key_here
 PORT=5000
 
-## 📁 Project Structure
+## 📂 Project Structure
+
+```text
 Voting/
-├── frontend/          # React + Vite app
+├── frontend/                # React + Vite app
 │   ├── src/
-│   │   ├── App.jsx   # Main component
-│   │   └── index.css # Global styles
+│   │   ├── App.jsx          # Main component
+│   │   └── index.css        # Global styles
 │   └── index.html
-├── backend/           # Express server
-│   ├── server.js     # API + Groq integration
-│   └── .env          # Never commit this!
+├── backend/                 # Express server
+│   ├── server.js            # API + Groq integration
+│   └── .env                 # Never commit this!
 └── README.md
 
 ## 📄 License
