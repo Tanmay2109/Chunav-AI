@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'https://chunavai.vercel.app/',
   methods: ['GET', 'POST'],
 }));
 app.use(express.json());
