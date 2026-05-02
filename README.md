@@ -1,4 +1,4 @@
-# 🇮🇳 ElectionGuide AI — Bharat ka Civic Compass
+# Chunav AI — Bharat ka Civic Compass
 
 > A non-partisan AI-powered civic assistant that helps every Indian 
 > citizen understand the election process, political history, and 
