@@ -196,7 +196,7 @@ function App() {
         parts: msg.parts
       }));
 
-      const response = await fetch('http://localhost:5000/api/chat', {
+      const response = await fetch('https://chunav-ai-backend.onrender.com', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: historyForApi, language: currentLang }),
