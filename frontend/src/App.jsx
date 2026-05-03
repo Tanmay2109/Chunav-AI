@@ -508,7 +508,7 @@ function App() {
         </header>
 
         {/* ── CHAT AREA ── */}
-        <main ref={messagesContainerRef} className="messages-container flex-1 w-full max-w-4xl mx-auto flex flex-col gap-6 z-10 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        <main ref={messagesContainerRef} className="messages-container flex-1 w-full max-w-4xl mx-auto flex flex-col gap-6 z-10 px-4 sm:px-6 pt-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
           {messages.map((msg, index) => (
             <div
               key={index}

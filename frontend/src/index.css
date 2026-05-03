@@ -1346,7 +1346,7 @@ body.theme-tiranga .settings-dropdown {
 .hint-text {
   font-family: 'DM Sans', sans-serif;
   font-size: 12px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.7);
   text-align: center;
   flex-shrink: 1;
   white-space: normal;
@@ -1354,7 +1354,7 @@ body.theme-tiranga .settings-dropdown {
 }
 
 body.theme-tiranga .hint-text {
-  color: rgba(0, 0, 80, 0.4);
+  color: rgba(0, 0, 80, 0.7);
 }
 
 .hint-text em {
