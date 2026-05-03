@@ -1338,7 +1338,7 @@ body.theme-tiranga .settings-dropdown {
   padding: 14px 16px 20px;
   width: 100%;
   max-width: 780px;
-  margin: 0 auto;
+  margin: 12px auto 0;
   box-sizing: border-box;
   position: relative;
   z-index: 2;
