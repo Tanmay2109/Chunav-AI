@@ -17,7 +17,7 @@ app.use(express.json());
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const SYSTEM_PROMPT = `
-You are ElectionGuide AI, an expert on Indian elections and democracy.
+You are Chunav AI, an expert on Indian elections and democracy.
 You can answer questions about:
 - Election process, ECI, voter registration, EVMs, VVPAT
 - All Indian political parties: BJP, INC, AAP, TMC, SP, BSP, DMK, Shiv Sena, NCP, RJD, JDU, CPI, CPM and all regional parties
@@ -68,5 +68,5 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`ElectionGuide AI Backend listening on port ${port}`);
+  console.log(`Chunav AI Backend listening on port ${port}`);
 });

@@ -57,6 +57,9 @@ function App() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const inputRef = useRef(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // ── Startup loader state ──
   const [showLoader, setShowLoader] = useState(true);
@@ -67,8 +70,21 @@ function App() {
 
   // ── Startup loader auto-dismiss ──
   useEffect(() => {
-    const timer = setTimeout(() => setShowLoader(false), 2800);
+    const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+    const delay = isMobile ? 3000 : 2800;
+    const timer = setTimeout(() => setShowLoader(false), delay);
     return () => clearTimeout(timer);
+  }, []);
+
+  // ── Close settings on outside click ──
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.settings-dropdown') && !e.target.closest('.settings-icon')) {
+        setSettingsOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   // ── Font size state ──
@@ -132,30 +148,61 @@ function App() {
   }, [fontSize]);
 
   // ── Scroll to bottom ──
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end'
+      });
+    }
+  };
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    if (isLoading) {
+      scrollToBottom();
+    }
+  }, [isLoading]);
 
   // ── Speech Recognition setup ──
   useEffect(() => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      setSpeechSupported(true);
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognitionRef.current = new SR();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = voiceLang;
-      recognitionRef.current.onstart = () => setIsListening(true);
-      recognitionRef.current.onend = () => setIsListening(false);
-      recognitionRef.current.onerror = () => setIsListening(false);
-      recognitionRef.current.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map(r => r[0].transcript)
-          .join('');
-        setInput(transcript);
-      };
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      setSpeechSupported(false);
+      return;
     }
-  }, []);
+    
+    setSpeechSupported(true);
+    
+    if ('permissions' in navigator) {
+      navigator.permissions.query({ name: 'microphone' })
+        .then(result => {
+          if (result.state === 'denied') {
+            alert('Please enable microphone permissions in Chrome settings');
+          }
+        }).catch(() => {});
+    }
+
+    recognitionRef.current = new SR();
+    recognitionRef.current.continuous = false;
+    recognitionRef.current.interimResults = true;
+    recognitionRef.current.lang = voiceLang;
+    recognitionRef.current.onstart = () => setIsListening(true);
+    recognitionRef.current.onend = () => setIsListening(false);
+    recognitionRef.current.onerror = () => setIsListening(false);
+    recognitionRef.current.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map(r => r[0].transcript)
+        .join('');
+      setInput(transcript);
+      if (inputRef.current) {
+        inputRef.current.value = transcript;
+      }
+    };
+  }, [voiceLang]);
 
   // ── Update recognition language ──
   useEffect(() => {
@@ -172,7 +219,14 @@ function App() {
     if (isListening) {
       recognitionRef.current.stop();
     } else {
-      recognitionRef.current.start();
+      if (!('ontouchstart' in window)) {
+        // Desktop — standard approach
+        recognitionRef.current.start();
+      } else {
+        // Mobile — need user gesture
+        try { recognitionRef.current.start(); } catch(e){}
+        setTimeout(() => { try { recognitionRef.current.start() } catch(e){} }, 100);
+      }
     }
   };
 
@@ -180,6 +234,10 @@ function App() {
   const handleSend = async (customText = null) => {
     const textToSend = customText || input;
     if (!textToSend.trim() || isLoading) return;
+
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
 
     const userMessage = {
       role: 'user',
@@ -216,10 +274,21 @@ function App() {
       setMessages(prev => [...prev, {
         role: 'assistant',
         parts: [{ text: "⚠️ Sorry, I'm having trouble connecting. Please try again." }],
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isError: true
       }]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    setMessages(prev => prev.filter(m => !m.isError));
+    const lastUserMsg = messages
+      .filter(m => m.role === 'user')
+      .slice(-1)[0];
+    if (lastUserMsg) {
+      handleSend(lastUserMsg.parts[0].text);
     }
   };
 
@@ -283,8 +352,8 @@ function App() {
         />
 
         {/* Ashoka Chakra Watermark */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
-          <AshokaChakra className="w-[600px] h-[600px] text-white opacity-[0.04]" />
+        <div className="chakra-watermark">
+          <AshokaChakra className="w-[600px] h-[600px] text-white" />
         </div>
 
         {/* ── HEADER ── */}
@@ -297,12 +366,12 @@ function App() {
               </div>
               <div>
                 <h1
-                  className="text-[19px] font-bold tracking-wide font-display text-text-body leading-tight"
-                  style={{ textShadow: '0 0 20px rgba(255,153,51,0.4)' }}
+                  className="text-[19px] font-bold tracking-wide font-display leading-tight"
+                  style={{ color: '#f0f0f0', textShadow: '0 0 20px rgba(255,153,51,0.4)' }}
                 >
                   Chunav AI
                 </h1>
-                <p className="hindi-sub text-[11px] text-saffron-500/70 font-hindi tracking-wide">
+                <p className="hindi-sub text-[11px] font-hindi tracking-wide" style={{ color: 'rgba(255, 153, 51, 0.7)' }}>
                   भारत का निष्पक्ष चुनाव सहायक
                 </p>
               </div>
@@ -358,11 +427,70 @@ function App() {
             </div>
 
             {/* Mobile: ⚙️ settings button */}
-            <button
-              className="md:hidden flex items-center justify-center w-9 h-9 rounded-full text-lg border border-saffron-500/30"
-              style={{ background: 'rgba(255,255,255,0.08)' }}
-              onClick={() => setToast('Use desktop for all controls')}
-            >⚙️</button>
+            <div className="settings-wrapper md:hidden">
+              <button
+                className="settings-toggle"
+                onClick={() => setSettingsOpen(!settingsOpen)}
+              >⚙️</button>
+              
+              {/* Settings Dropdown for Mobile */}
+              {settingsOpen && (
+                <>
+                  <div 
+                    className="settings-backdrop"
+                    onClick={() => setSettingsOpen(false)}
+                  />
+                  <div className="settings-dropdown shadow-xl">
+                    {/* 🎨 Theme pill */}
+                    <div className="settings-section">
+                      <span className="settings-label">🎨 Theme{!themeClicked ? ' ✨' : ''}</span>
+                      <div className="settings-theme-row">
+                        <button
+                          className={`theme-btn theme-btn-dark ${theme === 'dark' ? 'active' : ''}`}
+                          onClick={() => { setTheme('dark'); if (!themeClicked) { setThemeClicked(true); localStorage.setItem('theme_clicked', 'true'); } }}
+                        />
+                        <button
+                          className={`theme-btn theme-btn-tiranga ${theme === 'tiranga' ? 'active' : ''}`}
+                          onClick={() => { setTheme('tiranga'); if (!themeClicked) { setThemeClicked(true); localStorage.setItem('theme_clicked', 'true'); } }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* 🌐 Language pill */}
+                    <div className="settings-section">
+                      <span className="settings-label">🌐 Lang</span>
+                      <div className="settings-lang-row">
+                        <button
+                          className={`settings-lang-btn ${currentLang === 'en' ? 'active' : 'inactive'}`}
+                          onClick={() => switchLang('en')}
+                        >EN</button>
+                        <button
+                          className={`settings-lang-btn ${currentLang === 'hi' ? 'active' : 'inactive'}`}
+                          onClick={() => switchLang('hi')}
+                        >हि</button>
+                      </div>
+                    </div>
+
+                    {/* A- A+ pill */}
+                    <div className="settings-section">
+                      <span className="settings-label"><Type size={10} className="inline mr-0.5" />Size</span>
+                      <div className="settings-font-row">
+                        <button onClick={() => setFontSize(FONT_SIZES.small)} className={`settings-font-btn ${fontSize === FONT_SIZES.small ? 'active' : 'inactive'}`}>A-</button>
+                        <button onClick={() => setFontSize(FONT_SIZES.default)} className={`settings-font-btn ${fontSize === FONT_SIZES.default ? 'active' : 'inactive'}`}>A</button>
+                        <button onClick={() => setFontSize(FONT_SIZES.large)} className={`settings-font-btn ${fontSize === FONT_SIZES.large ? 'active' : 'inactive'}`}>A+</button>
+                      </div>
+                    </div>
+
+                    <button 
+                      className="settings-close"
+                      onClick={() => setSettingsOpen(false)}
+                    >
+                      ✕ Close
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Hint banner */}
@@ -380,11 +508,8 @@ function App() {
           </div>
         </header>
 
-        {/* Chat area fade overlay — hides messages behind input bar */}
-        <div className="input-fade pointer-events-none" />
-
         {/* ── CHAT AREA ── */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 w-full max-w-4xl mx-auto flex flex-col gap-6 z-10 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent" style={{ paddingBottom: '185px' }}>
+        <main ref={messagesContainerRef} className="messages-container flex-1 w-full max-w-4xl mx-auto flex flex-col gap-6 z-10 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
           {messages.map((msg, index) => (
             <div
               key={index}
@@ -399,7 +524,7 @@ function App() {
                 {/* Bubble + Timestamp */}
                 <div className="flex flex-col gap-1 w-full">
                   <div
-                    className={`rounded-2xl p-5 shadow-lg overflow-hidden w-fit ${msg.role === 'user' ? 'user-bubble ml-auto' : 'ai-bubble markdown-body'}`}
+                    className={`rounded-2xl p-5 shadow-lg overflow-hidden w-fit ${msg.role === 'user' ? 'user-bubble ml-auto' : `ai-bubble markdown-body ${msg.isError ? 'error-bubble' : ''}`}`}
                     style={{
                       borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                       ...(msg.role === 'user'
@@ -419,22 +544,40 @@ function App() {
                   <span className={`timestamp-text text-[10px] font-sans text-white/25 w-full block ${msg.role === 'user' ? 'text-right pr-1' : 'text-left pl-1'}`}>
                     {msg.timestamp}
                   </span>
+                  {msg.isError && (
+                    <button 
+                      className="retry-btn"
+                      onClick={() => handleRetry()}
+                    >
+                      🔄 Tap to retry
+                    </button>
+                  )}
                 </div>
               </div>
 
               {/* Suggestion Chips */}
               {index === 0 && msg.role === 'assistant' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-11 mt-3 w-full md:max-w-[85%]">
-                  {SUGGESTION_CHIPS.map((chip, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSend(chip)}
-                      className="chip-btn text-left surface-card hover:bg-saffron-500/10 border-l-[3px] border-l-saffron-500 border border-saffron-500/15 rounded-lg px-4 py-2.5 text-sm text-saffron-500 transition-all hover:translate-x-1 shadow-sm font-medium"
-                    >
-                      {chip}
-                    </button>
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-11 mt-3 w-full md:max-w-[85%]">
+                    {SUGGESTION_CHIPS.map((chip, i) => (
+                      <button
+                        key={i}
+                        onClick={(e) => { e.preventDefault(); handleSend(chip); }}
+                        onTouchEnd={(e) => { e.preventDefault(); handleSend(chip); }}
+                        className="chip-btn text-left surface-card hover:bg-saffron-500/10 border-l-[3px] border-l-saffron-500 border border-saffron-500/15 rounded-lg px-4 py-2.5 text-sm text-saffron-500 transition-all hover:translate-x-1 shadow-sm font-medium"
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="chips-footer-hint">
+                    <div className="hint-line" />
+                    <span className="hint-text">
+                      💬 Not just these! Ask me <em>anything</em> about Indian elections, parties, history, or your voter rights.
+                    </span>
+                    <div className="hint-line" />
+                  </div>
+                </>
               )}
             </div>
           ))}
@@ -463,11 +606,14 @@ function App() {
               </div>
             </div>
           )}
-          <div ref={messagesEndRef} />
+          <div 
+            ref={messagesEndRef} 
+            style={{ height: '1px', marginBottom: '8px' }} 
+          />
         </main>
 
         {/* ── INPUT AREA — fixed above footer ── */}
-        <footer className="input-footer z-[100] fixed left-0 right-0 px-4 pb-3 pt-2" style={{ bottom: '90px' }}>
+        <div className="input-footer">
           <div className="max-w-4xl mx-auto flex flex-col gap-2">
 
             {/* Listening indicator */}
@@ -501,6 +647,7 @@ function App() {
 
               {/* Text Input */}
               <input
+                ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -521,53 +668,35 @@ function App() {
               </button>
             </div>
           </div>
-        </footer>
+        </div>
 
         {/* Toast */}
         {toast && <div className="toast">{toast}</div>}
 
         {/* ── PRODUCT FOOTER ── */}
-        <div className="app-footer">
-          {/* Tricolor stripe */}
+        <footer className="app-footer">
           <div className="footer-stripe" />
-
-          {/* Main row */}
-          <div className="footer-inner">
-
-            {/* Left — Brand */}
-            <div className="footer-brand">
-              <div className="footer-logo">
-                <AshokaChakra className="w-6 h-6 text-saffron-500" />
-              </div>
-              <div className="footer-brand-text">
-                <span className="footer-app-name">Chunav AI</span>
-                <span className="footer-tagline">भारत का निष्पक्ष चुनाव सहायक</span>
-              </div>
-            </div>
-
-            {/* Center — Links */}
-            <div className="footer-links">
-              <a href="https://eci.gov.in" target="_blank" rel="noreferrer" className="footer-link">
-                🏙️ ECI Official
-              </a>
-              <span className="footer-divider">·</span>
-              <a href="https://voters.eci.gov.in" target="_blank" rel="noreferrer" className="footer-link">
-                🗼️ Voter Portal
-              </a>
-              <span className="footer-divider">·</span>
-              <span className="footer-helpline">
-                📞 Helpline: <strong>1950</strong>
-              </span>
-            </div>
-
-
+          
+          {/* ROW 1: Main links — centered */}
+          <div className="footer-main">
+            <a href="https://eci.gov.in" target="_blank" rel="noreferrer" className="footer-link">
+              🏛️ ECI Official
+            </a>
+            <span className="footer-dot">·</span>
+            <a href="https://voters.eci.gov.in" target="_blank" rel="noreferrer" className="footer-link">
+              🗳️ Voter Portal
+            </a>
+            <span className="footer-dot">·</span>
+            <span className="footer-helpline">
+              📞 Helpline: <strong>1950</strong>
+            </span>
           </div>
 
-          {/* Copyright line */}
+          {/* ROW 2: Copyright — centered */}
           <div className="footer-copy">
-            Made By Tanmay Patil for Bharat  ·  Not affiliated with ECI  · Always verify info at eci.gov.in
+            Made by Tanmay Patil for Bharat · Not affiliated with ECI · Always verify info at eci.gov.in
           </div>
-        </div>
+        </footer>
       </div>
     </>
   );
