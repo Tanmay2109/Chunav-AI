@@ -1705,3 +1705,32 @@ body.theme-tiranga .chip {
   position: relative;
   z-index: 2 !important;
 }
+
+/* ── BUG FIXES (Got More Questions) ── */
+.got-more {
+  display: block;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,153,51,0.2);
+  color: #FF9933;
+  font-weight: 600;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Animate ONLY the ❓ emoji */
+.got-more::first-letter {
+  display: inline-block;
+  animation: questionPulse 2s ease-in-out infinite;
+}
+
+@keyframes questionPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Tiranga theme */
+body.theme-tiranga .got-more {
+  color: #000080;
+  border-top-color: rgba(0,0,128,0.15);
+}

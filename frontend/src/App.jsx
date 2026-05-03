@@ -315,8 +315,7 @@ function App() {
           </div>
         );
       }
-      if (textContent.includes('Got more questions?'))
-        return <div className="markdown-end-msg">❓ <span className="animate-pulse-icon">{children}</span></div>;
+
       if (textContent.startsWith('📌'))
         return <div className="markdown-topic-header">{children}</div>;
       return <p>{children}</p>;
@@ -536,9 +535,16 @@ function App() {
                     {msg.role === 'user' ? (
                       <p className="whitespace-pre-wrap">{msg.parts[0].text}</p>
                     ) : (
-                      <ReactMarkdown rehypePlugins={[rehypeRaw]} components={markdownComponents}>
-                        {processMarkdown(msg.parts[0].text)}
-                      </ReactMarkdown>
+                      <>
+                        <ReactMarkdown rehypePlugins={[rehypeRaw]} components={markdownComponents}>
+                          {processMarkdown(msg.parts[0].text.replace(/Got more questions\?.*$/s, '').trim())}
+                        </ReactMarkdown>
+                        {msg.parts[0].text.includes('Got more questions?') && (
+                          <span className="got-more">
+                            ❓ Got more questions? Ask me anything about Indian elections, parties, or democracy!
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                   <span className={`timestamp-text text-[10px] font-sans text-white/25 w-full block ${msg.role === 'user' ? 'text-right pr-1' : 'text-left pl-1'}`}>

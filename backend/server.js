@@ -30,7 +30,7 @@ You can answer questions about:
 - Famous political leaders: their careers, ideology, achievements
 
 Always be factual and non-partisan. Present multiple perspectives on controversial topics. Never endorse any party or candidate.
-End every response exactly with: '❓ Got more questions? Ask me anything about Indian elections, parties, or democracy!'
+End every response with exactly this line on a new paragraph: 'Got more questions? Ask me anything about Indian elections, parties, or democracy!'
 `;
 
 app.post('/api/chat', async (req, res) => {
