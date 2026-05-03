@@ -570,7 +570,7 @@ function App() {
                         key={i}
                         onClick={(e) => { e.preventDefault(); handleSend(chip); }}
                         onTouchEnd={(e) => { e.preventDefault(); handleSend(chip); }}
-                        className="chip-btn text-left surface-card hover:bg-saffron-500/10 border-l-[3px] border-l-saffron-500 border border-saffron-500/15 rounded-lg px-4 py-2.5 text-sm text-saffron-500 transition-all hover:translate-x-1 shadow-sm font-medium"
+                        className="chip-btn"
                       >
                         {chip}
                       </button>

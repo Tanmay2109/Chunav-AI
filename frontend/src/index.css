@@ -1392,6 +1392,16 @@ main {
 }
 
 .chip-btn {
+  /* Layout / interaction */
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
@@ -1399,6 +1409,22 @@ main {
   overflow: hidden !important;
   position: relative;
   z-index: 2;
+  transition: all 0.2s ease;
+
+  /* Dark theme appearance */
+  background: rgba(13, 27, 53, 0.85);
+  color: #FF9933;
+  border-left: 3px solid #FF9933;
+  border-top: 1px solid rgba(255,153,51,0.15);
+  border-right: 1px solid rgba(255,153,51,0.15);
+  border-bottom: 1px solid rgba(255,153,51,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.chip-btn:hover {
+  background: rgba(255,153,51,0.1);
+  transform: translateX(3px);
+  box-shadow: 0 4px 12px rgba(255,153,51,0.15);
 }
 
 .chip-btn::before {
