@@ -516,14 +516,14 @@ function App() {
             >
               <div className={`flex gap-3 w-full md:max-w-[90%] max-w-[95%] ${msg.role === 'user' ? 'flex-row-reverse ml-auto' : 'flex-row mr-auto'}`}>
                 {/* Avatar */}
-                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-lg ${msg.role === 'user' ? 'bg-saffron-500 text-white' : 'surface-card border border-saffron-500/20 text-saffron-500'}`}>
+                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-md ${msg.role === 'user' ? 'bg-saffron-500 text-white' : 'border border-saffron-500/30 text-saffron-500'}`} style={msg.role !== 'user' ? { background: 'rgba(13,27,53,0.9)' } : {}}>
                   {msg.role === 'user' ? <User size={16} /> : <AshokaChakra className="w-4 h-4" />}
                 </div>
 
                 {/* Bubble + Timestamp */}
                 <div className="flex flex-col gap-1 w-full">
                   <div
-                    className={`rounded-2xl p-5 shadow-lg overflow-hidden w-fit ${msg.role === 'user' ? 'user-bubble ml-auto' : `ai-bubble markdown-body ${msg.isError ? 'error-bubble' : ''}`}`}
+                    className={`rounded-2xl p-5 overflow-hidden w-fit ${msg.role === 'user' ? 'user-bubble ml-auto' : `ai-bubble markdown-body ${msg.isError ? 'error-bubble' : ''}`}`}
                     style={{
                       borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                       ...(msg.role === 'user'
